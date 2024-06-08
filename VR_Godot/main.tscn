@@ -1,4 +1,4 @@
-[gd_scene load_steps=4 format=3 uid="uid://cftprcqi6dtr0"]
+[gd_scene load_steps=5 format=3 uid="uid://cftprcqi6dtr0"]
 
 [ext_resource type="Script" path="res://Node3D.gd" id="1_k4lpt"]
 
@@ -8,6 +8,8 @@ size = Vector3(0.1, 0.1, 0.1)
 [sub_resource type="BoxMesh" id="BoxMesh_f3liy"]
 size = Vector3(0.1, 0.1, 0.1)
 
+[sub_resource type="PlaneMesh" id="PlaneMesh_2mgjh"]
+
 [node name="Node3D" type="Node3D"]
 script = ExtResource("1_k4lpt")
 
@@ -15,10 +17,10 @@ script = ExtResource("1_k4lpt")
 
 [node name="XRCamera3D" type="XRCamera3D" parent="XROrigin3D"]
 
-[node name="XRController3D_Left" type="XRController3D" parent="XROrigin3D"]
+[node name="LeftController" type="XRController3D" parent="XROrigin3D"]
 tracker = &"left_hand"
 
-[node name="MeshInstance3D" type="MeshInstance3D" parent="XROrigin3D/XRController3D_Left"]
+[node name="MeshInstance3D" type="MeshInstance3D" parent="XROrigin3D/LeftController"]
 mesh = SubResource("BoxMesh_tyc1h")
 
 [node name="XRController3D_right" type="XRController3D" parent="XROrigin3D"]
@@ -33,3 +35,10 @@ mesh = SubResource("BoxMesh_f3liy")
 offset_right = 8.0
 offset_bottom = 8.0
 text = "Enter VR"
+
+[node name="DirectionalLight3D" type="DirectionalLight3D" parent="."]
+transform = Transform3D(0.669753, 0.556317, -0.491876, 0, 0.662385, 0.749164, 0.742584, -0.501755, 0.443634, 0, 1.38942, 0)
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="."]
+transform = Transform3D(0.999391, 0, 0.0348995, 0, 1, 0, -0.0348995, 0, 0.999391, 0, -1, 0)
+mesh = SubResource("PlaneMesh_2mgjh")
