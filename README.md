@@ -1,1 +1,1 @@
-#[Beginnings of my site](necro.nomiconnook.com)
+[Beginnings of my site](necro.nomiconnook.com)
