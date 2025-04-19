@@ -1,4 +1,4 @@
-document.querySelectorAll(".draggable").forEach(el => {
+document.querySelectorAll(".draggable").forEach((el,index) => {
     dragElement(el);
   });
 
