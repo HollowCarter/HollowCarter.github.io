@@ -1,4 +1,3 @@
-```html
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -75,7 +74,6 @@
             
             <circle id="lap-ring" cx="150" cy="150" r="108" fill="none" stroke="rgba(245, 158, 11, 0.15)" stroke-width="14" class="hidden" />
             <path id="dial-path" d="" fill="none" stroke="#F59E0B" stroke-width="14" stroke-linecap="round" />
-            <circle id="start-dot" cx="258" cy="150" r="7" fill="#E2E8F0" class="transition-colors duration-200" />
             
             <!-- Dynamic Tip -->
             <g id="dial-tip-group" class="hidden">
@@ -110,8 +108,17 @@
       <div id="tab-stats" class="tab-content px-4 py-5 w-full pb-8">
         <!-- Graph -->
         <div class="bg-white rounded-2xl p-4 mb-4 shadow-sm border border-slate-100">
-          <h2 class="text-lg font-extrabold text-slate-800 text-center mb-4 tracking-tight">Daily Progress</h2>
-          <div id="stats-graph-container"></div>
+          <h2 class="text-lg font-extrabold text-slate-800 text-center mb-4 tracking-tight">Timeline</h2>
+          
+          <div class="relative">
+            <!-- Fixed Y-Axis Labels Overlay -->
+            <div id="y-axis-labels" class="absolute top-0 left-0 bottom-0 pointer-events-none w-10 z-10"></div>
+            
+            <!-- Horizontally Scrollable SVG Container -->
+            <div id="stats-scroll-container" class="overflow-x-auto hide-scrollbar touch-pan-x w-full">
+              <div id="stats-graph-container"></div>
+            </div>
+          </div>
           
           <div class="flex gap-4 justify-center mt-4">
             <div class="flex items-center gap-1.5"><div class="w-2.5 h-2.5 rounded-sm bg-slate-100"></div><span class="text-[10px] text-slate-500 font-medium">Target</span></div>
@@ -120,9 +127,9 @@
           </div>
         </div>
 
-        <!-- Weekly List -->
+        <!-- Recent Breakdown List -->
         <div class="bg-white rounded-2xl p-5 shadow-sm border border-slate-100">
-          <div class="text-xs font-bold text-slate-400 tracking-wider uppercase mb-4">Weekly Breakdown</div>
+          <div class="text-xs font-bold text-slate-400 tracking-wider uppercase mb-4">Recent History</div>
           <div id="stats-list"></div>
           <p class="text-xs text-slate-400 mt-4 text-center">Tap any day to edit its target</p>
         </div>
@@ -238,12 +245,6 @@
 
     function todayStr() { return fmtDate(new Date()); }
 
-    function last7() {
-      return Array.from({ length: 7 }, (_, i) => {
-        const d = new Date(); d.setDate(d.getDate() - (6 - i)); return fmtDate(d);
-      });
-    }
-
     function parseDate(s) { 
       const [y, m, d] = s.split('-').map(Number); 
       return new Date(y, m - 1, d); 
@@ -258,13 +259,11 @@
     let editingDate = null;
     let resetConfirming = false;
 
-    // Load Data from Browser's Local Memory
     const savedData = localStorage.getItem('replogger_data');
     if (savedData) data = JSON.parse(savedData);
     if (!data.history) data.history = {};
     if (!data.defTarget) data.defTarget = 100;
 
-    // Save Data to Browser's Local Memory
     function saveData() {
       localStorage.setItem('replogger_data', JSON.stringify(data));
       renderApp();
@@ -308,7 +307,6 @@
     const tipMinus = document.getElementById('tip-minus');
     const repsText = document.getElementById('dial-reps-text');
     const subText = document.getElementById('dial-sub-text');
-    const startDot = document.getElementById('start-dot');
     const lapRing = document.getElementById('lap-ring');
     const lapBadge = document.getElementById('lap-badge');
     const lapBadgeText = document.getElementById('lap-badge-text');
@@ -352,12 +350,9 @@
       const tipPos = lapSweep > 4 ? polar(CX, CY, R, isNeg ? -lapSweep : lapSweep) : null;
       const arcColor = isNeg ? '#EF4444' : '#F59E0B'; 
 
-      // Draw path
       pathEl.setAttribute('d', pathStr || '');
       pathEl.setAttribute('stroke', arcColor);
-      startDot.setAttribute('fill', arc !== 0 ? arcColor : '#E2E8F0');
 
-      // Tip positioning
       if (tipPos) {
         tipGroup.classList.remove('hidden');
         document.getElementById('tip-glow').setAttribute('cx', tipPos.x); document.getElementById('tip-glow').setAttribute('cy', tipPos.y);
@@ -379,7 +374,6 @@
         tipGroup.classList.add('hidden');
       }
 
-      // Text
       repsText.textContent = dialReps;
       repsText.setAttribute('fill', isNeg ? '#EF4444' : '#1E293B');
       repsText.setAttribute('font-size', Math.abs(dialReps) > 99 ? '50' : '68');
@@ -387,7 +381,6 @@
       subText.textContent = isNeg ? 'reps to remove' : (dialReps === 1 ? 'rep' : 'reps to bank');
       subText.setAttribute('fill', isNeg ? '#FCA5A5' : '#94A3B8');
 
-      // Laps
       if (lapsComplete > 0) {
         lapRing.classList.remove('hidden');
         lapBadge.classList.remove('hidden');
@@ -397,15 +390,13 @@
         lapBadge.classList.add('hidden');
       }
 
-      // Lap Indicators below card
       let indsHtml = '';
-      for(let i=0; i < Math.min(lapsComplete, 12); i++) {
+      for(let i=0; i < Math.min(lapsComplete, 10); i++) {
         indsHtml += `<div class="w-2 h-2 rounded-full bg-amber-500"></div>`;
       }
-      if(lapsComplete > 12) indsHtml += `<span class="text-[10px] text-amber-500 font-bold">+${lapsComplete - 12}</span>`;
+      if(lapsComplete > 10) indsHtml += `<span class="text-[10px] text-amber-500 font-bold">+${lapsComplete - 10}</span>`;
       lapIndicators.innerHTML = indsHtml;
 
-      // Button
       const tdReps = (data.history[todayStr()]?.reps || 0);
       if (dialReps > 0) {
         bankBtn.disabled = false;
@@ -445,7 +436,7 @@
       
       const rect = svg.getBoundingClientRect();
       const dist = Math.hypot(pt.clientX - (rect.left + rect.width / 2), pt.clientY - (rect.top + rect.height / 2));
-      if (dist < 30) return; // Ignore movements too close to center
+      if (dist < 30) return; 
 
       let a = getAngle(pt.clientX, pt.clientY);
       let d = a - lastA;
@@ -482,89 +473,211 @@
       
       saveData();
       
-      // Reset Dial
       arc = 0; dialReps = 0; accA = 0;
       updateDialVisuals();
 
-      // Animate card
       const statsEl = document.getElementById('today-stats');
       statsEl.classList.add('scale-110');
       setTimeout(() => statsEl.classList.remove('scale-110'), 300);
     });
 
-    // ─── Stats Logic ─────────────────────────────────────────────────────────
+    // ─── Timeline Generation & Logic ─────────────────────────────────────────
+    function buildTimelineData() {
+      const td = todayStr();
+      const datesSet = new Set(Object.keys(data.history));
+      datesSet.add(td);
+      
+      // Force exactly 7 days into the future into our timeline set
+      const todayDate = parseDate(td);
+      for (let i = 1; i <= 7; i++) {
+        const futureDate = new Date(todayDate);
+        futureDate.setDate(todayDate.getDate() + i);
+        datesSet.add(fmtDate(futureDate));
+      }
+      
+      // Filter the dates:
+      // 1. Keep "Today"
+      // 2. Keep the 7 Future Days
+      // 3. Keep Past Days ONLY if they have tracked reps or custom targets
+      const activeDates = Array.from(datesSet).filter(date => {
+          if (date === td) return true;
+          
+          const pd = parseDate(date);
+          const pt = parseDate(td);
+          
+          // Allow future days (up to 7 days ahead)
+          if (pd > pt) {
+              const diff = Math.round((pd - pt) / 86400000);
+              return diff <= 7;
+          }
+
+          // Allow past days if they have actual data
+          const dayData = data.history[date];
+          return dayData && ((dayData.reps > 0) || (dayData.target && dayData.target !== data.defTarget));
+      }).sort((a, b) => parseDate(a) - parseDate(b));
+
+      // Build the gaps for missed past days
+      const timeline = [];
+      for (let i = 0; i < activeDates.length; i++) {
+          const d1 = activeDates[i];
+          timeline.push({ type: 'day', date: d1 });
+
+          if (i < activeDates.length - 1) {
+              const d2 = activeDates[i+1];
+              const diff = Math.round((parseDate(d2) - parseDate(d1)) / 86400000);
+              
+              if (diff === 2) {
+                  // Only 1 day gap, show naturally
+                  const missingDay = parseDate(d1);
+                  missingDay.setDate(missingDay.getDate() + 1);
+                  timeline.push({ type: 'day', date: fmtDate(missingDay), empty: true });
+              } else if (diff > 2) {
+                  // Multiple day gap, condense it
+                  timeline.push({ type: 'gap', days: diff - 1 });
+              }
+          }
+      }
+      return timeline;
+    }
+
     function renderStats() {
-      const days = last7();
+      const timeline = buildTimelineData();
+      
       let maxV = data.defTarget;
-      days.forEach(d => {
-        const v = data.history[d];
-        if (v) maxV = Math.max(maxV, v.target || data.defTarget, v.reps || 0, 1);
+      timeline.forEach(item => {
+        if (item.type === 'day') {
+          const v = data.history[item.date];
+          if (v) maxV = Math.max(maxV, v.target || data.defTarget, v.reps || 0, 1);
+        }
       });
 
-      const CH = 180, CW = 300, BW = 28, gap = CW / 7;
+      const CH = 180, gap = 45, gapW = 40, BW = 28;
       const td = todayStr();
+      
+      // Calculate total SVG width required
+      let totalW = 0;
+      timeline.forEach(item => {
+          totalW += (item.type === 'day' ? gap : gapW);
+      });
+      totalW += gap / 2; // Right padding
 
-      // Graph SVG
-      let svgHtml = `<svg width="100%" viewBox="-4 0 ${CW + 44} ${CH + 62}">`;
-      [0, 0.25, 0.5, 0.75, 1].forEach(f => {
+      // Y-Axis Overlay & Background Lines
+      let yAxisHtml = '';
+      let gridLinesHtml = '';
+      [1, 0.75, 0.5, 0.25, 0].forEach(f => {
         const y = CH - f * CH + 4;
         const v = Math.round(f * maxV);
-        svgHtml += `
-          <g>
-            <line x1="32" y1="${y}" x2="${CW + 32}" y2="${y}" stroke="${f === 0 ? '#CBD5E1' : '#F1F5F9'}" stroke-width="${f === 0 ? 1 : 0.8}" />
-            <text x="29" y="${y + 4}" text-anchor="end" fill="#94A3B8" font-size="9" font-weight="500">${v}</text>
-          </g>`;
+        yAxisHtml += `<div class="absolute left-0 text-[10px] font-bold text-slate-400 bg-white/80 pr-1.5 rounded-r-md backdrop-blur-sm px-1.5 flex items-center shadow-sm" style="top: ${y - 8}px; height: 16px;">${v}</div>`;
+        gridLinesHtml += `<line x1="0" y1="${y}" x2="${Math.max(totalW, 350)}" y2="${y}" stroke="${f === 0 ? '#CBD5E1' : '#F1F5F9'}" stroke-width="${f === 0 ? 1 : 0.8}" />`;
       });
+      document.getElementById('y-axis-labels').innerHTML = yAxisHtml;
 
-      let listHtml = '';
+      // Draw Graph
+      let svgHtml = `<svg width="${totalW}" height="${CH + 62}" viewBox="0 0 ${totalW} ${CH + 62}">`;
+      svgHtml += gridLinesHtml;
 
-      days.forEach((date, i) => {
-        const x = 32 + i * gap + gap / 2;
-        const dayData = data.history[date] || {};
-        const reps = dayData.reps || 0;
-        const tgt = dayData.target || data.defTarget;
-        const isToday = date === td;
-        const done = reps > 0 && reps >= tgt;
-        const tH = (tgt / maxV) * CH;
-        const rH = Math.max(0, (reps / maxV) * CH);
-        const dayDateObj = parseDate(date);
+      let currentX = gap / 2; // initial left padding
+      timeline.forEach((item) => {
+        if (item.type === 'day') {
+          const date = item.date;
+          const x = currentX + gap / 2;
+          const dayData = data.history[date] || {};
+          const reps = dayData.reps || 0;
+          const tgt = dayData.target || data.defTarget;
+          const isToday = date === td;
+          const isFuture = parseDate(date) > parseDate(td);
+          const done = reps > 0 && reps >= tgt;
+          const tH = (tgt / maxV) * CH;
+          const rH = Math.max(0, (reps / maxV) * CH);
+          const dayDateObj = parseDate(date);
+          
+          const targetColor = isFuture ? '#F8FAFC' : '#F1F5F9';
+          const textColor = isToday ? '#F59E0B' : (isFuture ? '#CBD5E1' : '#64748B');
 
-        // Graph Bar
-        svgHtml += `
-          <g class="cursor-pointer group" onclick="openModal('${date}', ${tgt})">
-            <rect x="${x - BW / 2}" y="${CH - tH + 4}" width="${BW}" height="${tH}" rx="6" fill="#F1F5F9" class="transition-colors group-hover:fill-slate-200" />
-            ${reps > 0 ? `<rect x="${x - BW / 2}" y="${CH - rH + 4}" width="${BW}" height="${rH}" rx="6" fill="${done ? '#FBBF24' : isToday ? '#D97706' : '#F59E0B'}" />` : ''}
-            ${isToday ? `<circle cx="${x}" cy="${CH + 16}" r="3" fill="#F59E0B" />` : ''}
-            <text x="${x}" y="${CH + 30}" text-anchor="middle" font-size="11" font-weight="${isToday ? 700 : 500}" fill="${isToday ? '#F59E0B' : '#64748B'}">${dayDateObj.getDate()}</text>
-            <text x="${x}" y="${CH + 44}" text-anchor="middle" font-size="8.5" fill="#94A3B8">${DOW2[dayDateObj.getDay()]}</text>
-          </g>`;
+          svgHtml += `
+            <g class="cursor-pointer group" onclick="openModal('${date}', ${tgt})">
+              <!-- Hitbox -->
+              <rect x="${currentX}" y="0" width="${gap}" height="${CH+62}" fill="transparent" />
+              <!-- Background Bar -->
+              <rect x="${x - BW / 2}" y="${CH - tH + 4}" width="${BW}" height="${tH}" rx="6" fill="${targetColor}" class="transition-colors group-hover:fill-slate-200" />
+              <!-- Reps Bar -->
+              ${reps > 0 ? `<rect x="${x - BW / 2}" y="${CH - rH + 4}" width="${BW}" height="${rH}" rx="6" fill="${done ? '#FBBF24' : isToday ? '#D97706' : '#F59E0B'}" />` : ''}
+              ${isToday ? `<circle cx="${x}" cy="${CH + 16}" r="3" fill="#F59E0B" />` : ''}
+              
+              <text x="${x}" y="${CH + 30}" text-anchor="middle" font-size="11" font-weight="${isToday ? 700 : 500}" fill="${textColor}">${dayDateObj.getDate()}</text>
+              <text x="${x}" y="${CH + 44}" text-anchor="middle" font-size="8.5" fill="${isFuture ? '#CBD5E1' : '#94A3B8'}">${DOW2[dayDateObj.getDay()]}</text>
+            </g>`;
+          currentX += gap;
+        } else if (item.type === 'gap') {
+          const x = currentX + gapW / 2;
+          svgHtml += `
+            <g>
+              <rect x="${currentX + 2}" y="${CH/2 - 12}" width="${gapW - 4}" height="24" rx="6" fill="#F1F5F9" />
+              <text x="${x}" y="${CH/2 + 3}" text-anchor="middle" font-size="9" font-weight="700" fill="#94A3B8">${item.days}d</text>
+              <circle cx="${x - 8}" cy="${CH + 30}" r="1.5" fill="#CBD5E1" />
+              <circle cx="${x}" cy="${CH + 30}" r="1.5" fill="#CBD5E1" />
+              <circle cx="${x + 8}" cy="${CH + 30}" r="1.5" fill="#CBD5E1" />
+            </g>`;
+          currentX += gapW;
+        }
       });
       svgHtml += `</svg>`;
       document.getElementById('stats-graph-container').innerHTML = svgHtml;
 
-      // List Breakdown
-      [...days].reverse().forEach((date, i) => {
-        const dayData = data.history[date] || {};
-        const reps = dayData.reps || 0;
-        const tgt = dayData.target || data.defTarget;
-        const pct = Math.min(reps / tgt, 1);
-        const isToday = date === td;
-        const done = reps >= tgt && reps > 0;
-        const label = isToday ? 'Today' : DOW[parseDate(date).getDay()];
+      // Auto-scroll timeline to perfectly center on "Today"
+      const scrollContainer = document.getElementById('stats-scroll-container');
+      setTimeout(() => {
+        const todayIndex = timeline.findIndex(t => t.date === td);
+        if (todayIndex !== -1) {
+            let targetX = gap / 2; // calculate x position of Today
+            for(let i = 0; i < todayIndex; i++) {
+                if (timeline[i].type === 'day') targetX += gap;
+                else if (timeline[i].type === 'gap') targetX += gapW;
+            }
+            const scrollPos = targetX - (scrollContainer.clientWidth / 2) + (gap / 2);
+            scrollContainer.scrollTo({ left: Math.max(0, scrollPos), behavior: 'smooth' });
+        }
+      }, 50);
 
-        listHtml += `
-          <div class="cursor-pointer ${i < 6 ? 'mb-4' : ''}" onclick="openModal('${date}', ${tgt})">
-            <div class="flex justify-between items-baseline mb-1.5">
-              <div class="flex items-center gap-2">
-                <span class="text-sm font-semibold ${isToday ? 'text-amber-500 font-extrabold' : 'text-slate-800'}">${label}</span>
-                ${done ? `<i data-lucide="check" class="text-amber-400 w-3.5 h-3.5" stroke-width="4"></i>` : ''}
+      // Render vertical List Breakdown (Exclude future days from list to keep it clean)
+      let listHtml = '';
+      const listItems = timeline.filter(item => item.type === 'gap' || (item.type === 'day' && parseDate(item.date) <= parseDate(td)));
+      const revTimeline = listItems.reverse().slice(0, 20); // Show max 20 recent history items
+      
+      revTimeline.forEach((item, i) => {
+        if (item.type === 'day') {
+          const date = item.date;
+          const dayData = data.history[date] || {};
+          const reps = dayData.reps || 0;
+          const tgt = dayData.target || data.defTarget;
+          const pct = Math.min(reps / tgt, 1);
+          const isToday = date === td;
+          const done = reps >= tgt && reps > 0;
+          const label = isToday ? 'Today' : DOW[parseDate(date).getDay()] + ' ' + parseDate(date).getDate();
+
+          listHtml += `
+            <div class="cursor-pointer ${i < revTimeline.length - 1 ? 'mb-4' : ''}" onclick="openModal('${date}', ${tgt})">
+              <div class="flex justify-between items-baseline mb-1.5">
+                <div class="flex items-center gap-2">
+                  <span class="text-sm font-semibold ${isToday ? 'text-amber-500 font-extrabold' : 'text-slate-800'}">${label}</span>
+                  ${done ? `<i data-lucide="check" class="text-amber-400 w-3.5 h-3.5" stroke-width="4"></i>` : ''}
+                </div>
+                <span class="text-sm text-slate-500 font-medium">${reps} <span class="text-slate-300">/ ${tgt}</span></span>
               </div>
-              <span class="text-sm text-slate-500 font-medium">${reps} <span class="text-slate-300">/ ${tgt}</span></span>
-            </div>
-            <div class="h-1.5 bg-slate-100 rounded-full overflow-hidden">
-              <div class="h-full rounded-full transition-all duration-500 ${done ? 'bg-amber-400' : isToday ? 'bg-amber-500' : 'bg-amber-600'}" style="width: ${pct * 100}%"></div>
-            </div>
-          </div>`;
+              <div class="h-1.5 bg-slate-100 rounded-full overflow-hidden">
+                <div class="h-full rounded-full transition-all duration-500 ${done ? 'bg-amber-400' : isToday ? 'bg-amber-500' : 'bg-amber-600'}" style="width: ${pct * 100}%"></div>
+              </div>
+            </div>`;
+        } else if (item.type === 'gap') {
+          listHtml += `
+            <div class="flex items-center justify-center gap-3 my-4 py-2 border-y border-dashed border-slate-100">
+              <div class="w-1.5 h-1.5 rounded-full bg-slate-200"></div>
+              <div class="w-1.5 h-1.5 rounded-full bg-slate-200"></div>
+              <span class="text-xs font-bold text-slate-400 uppercase tracking-widest">${item.days} missed days</span>
+              <div class="w-1.5 h-1.5 rounded-full bg-slate-200"></div>
+              <div class="w-1.5 h-1.5 rounded-full bg-slate-200"></div>
+            </div>`;
+        }
       });
       document.getElementById('stats-list').innerHTML = listHtml;
       lucide.createIcons();
@@ -671,6 +784,3 @@
   </script>
 </body>
 </html>
-
-
-```
