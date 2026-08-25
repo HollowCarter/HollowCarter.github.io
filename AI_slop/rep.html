@@ -1,10 +1,11 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>Rep Logger</title>
-  
+
   <!-- Tailwind CSS for styling -->
   <script src="https://cdn.tailwindcss.com"></script>
   <!-- Lucide Icons -->
@@ -12,28 +13,53 @@
 
   <style>
     /* Hide scrollbar for a clean, app-like look */
-    ::-webkit-scrollbar { display: none; }
-    * { -ms-overflow-style: none; scrollbar-width: none; }
-    
-    body { font-family: system-ui, -apple-system, sans-serif; background-color: #f8fafc; }
-    
-    .tab-content { display: none; }
-    .tab-content.active { display: block; }
-    
-    .nav-btn { color: #94a3b8; transition: all 0.2s; }
-    .nav-btn.active { color: #f59e0b; }
-    
+    ::-webkit-scrollbar {
+      display: none;
+    }
+
+    * {
+      -ms-overflow-style: none;
+      scrollbar-width: none;
+    }
+
+    body {
+      font-family: system-ui, -apple-system, sans-serif;
+      background-color: #f8fafc;
+    }
+
+    .tab-content {
+      display: none;
+    }
+
+    .tab-content.active {
+      display: block;
+    }
+
+    .nav-btn {
+      color: #94a3b8;
+      transition: all 0.2s;
+    }
+
+    .nav-btn.active {
+      color: #f59e0b;
+    }
+
     /* Crucial: prevents the whole page from scrolling when you try to spin the dial */
-    #dial-svg { touch-action: none; } 
+    #dial-svg {
+      touch-action: none;
+    }
   </style>
 </head>
+
 <body class="h-screen flex flex-col items-center justify-center bg-slate-100">
 
   <!-- Main App Container -->
-  <div class="w-full h-full max-w-[430px] bg-slate-50 flex flex-col overflow-hidden relative shadow-2xl sm:h-[850px] sm:rounded-[40px] sm:border-[8px] sm:border-slate-800">
-    
+  <div
+    class="w-full h-full max-w-[430px] bg-slate-50 flex flex-col overflow-hidden relative shadow-2xl sm:h-[850px] sm:rounded-[40px] sm:border-[8px] sm:border-slate-800">
+
     <!-- Header -->
-    <div class="h-[52px] bg-white/90 backdrop-blur-md border-b border-slate-200/60 flex items-center justify-center shrink-0 z-10">
+    <div
+      class="h-[52px] bg-white/90 backdrop-blur-md border-b border-slate-200/60 flex items-center justify-center shrink-0 z-10">
       <span id="header-title" class="text-[16px] font-extrabold text-slate-800 tracking-tight flex items-center gap-2">
         💪 Rep Logger
       </span>
@@ -41,7 +67,7 @@
 
     <!-- Content Area -->
     <div class="flex-1 overflow-y-auto overflow-x-hidden relative" id="content-area">
-      
+
       <!-- 1. COUNTER TAB -->
       <div id="tab-counter" class="tab-content active px-5 pt-4 w-full pb-8">
         <!-- Today Card -->
@@ -54,7 +80,9 @@
             </span>
           </div>
           <div class="h-2 bg-slate-100 rounded-full overflow-hidden">
-            <div id="today-progress" class="h-full rounded-full transition-all duration-500 ease-out bg-gradient-to-r from-amber-400 to-amber-300" style="width: 0%"></div>
+            <div id="today-progress"
+              class="h-full rounded-full transition-all duration-500 ease-out bg-gradient-to-r from-amber-400 to-amber-300"
+              style="width: 0%"></div>
           </div>
           <div id="target-smashed" class="hidden text-xs text-green-500 font-bold mt-2 flex items-center gap-1">
             <i data-lucide="check" class="w-3.5 h-3.5" stroke-width="3"></i> Daily target smashed!
@@ -71,37 +99,48 @@
             <circle cx="150" cy="150" r="124" fill="none" stroke="rgba(245, 158, 11, 0.05)" stroke-width="20" />
             <circle cx="150" cy="150" r="108" fill="none" stroke="#F1F5F9" stroke-width="14" />
             <circle cx="150" cy="150" r="88" fill="white" />
-            
-            <circle id="lap-ring" cx="150" cy="150" r="108" fill="none" stroke="rgba(245, 158, 11, 0.15)" stroke-width="14" class="hidden" />
+
+            <circle id="lap-ring" cx="150" cy="150" r="108" fill="none" stroke="rgba(245, 158, 11, 0.15)"
+              stroke-width="14" class="hidden" />
             <path id="dial-path" d="" fill="none" stroke="#F59E0B" stroke-width="14" stroke-linecap="round" />
-            
+
             <!-- Dynamic Tip -->
             <g id="dial-tip-group" class="hidden">
               <circle id="tip-glow" cx="0" cy="0" r="20" fill="white" opacity="0.6" />
               <circle id="tip-core" cx="0" cy="0" r="17" fill="#1E293B" stroke="#F59E0B" stroke-width="2.5" />
-              <polyline id="tip-arrow" points="" fill="none" stroke="#F59E0B" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" />
-              <line id="tip-minus" x1="0" y1="0" x2="0" y2="0" stroke="#EF4444" stroke-width="2.5" stroke-linecap="round" class="hidden" />
+              <polyline id="tip-arrow" points="" fill="none" stroke="#F59E0B" stroke-width="2.5" stroke-linecap="round"
+                stroke-linejoin="round" />
+              <line id="tip-minus" x1="0" y1="0" x2="0" y2="0" stroke="#EF4444" stroke-width="2.5"
+                stroke-linecap="round" class="hidden" />
             </g>
-            
+
             <!-- Center Text -->
-            <text id="dial-reps-text" x="150" y="158" text-anchor="middle" dominant-baseline="middle" fill="#1E293B" font-size="68" font-weight="900">0</text>
-            <text id="dial-sub-text" x="150" y="194" text-anchor="middle" fill="#94A3B8" font-size="13" font-weight="500">drag to add</text>
-            
+            <text id="dial-reps-text" x="150" y="158" text-anchor="middle" dominant-baseline="middle" fill="#1E293B"
+              font-size="68" font-weight="900">0</text>
+            <text id="dial-sub-text" x="150" y="194" text-anchor="middle" fill="#94A3B8" font-size="13"
+              font-weight="500">drag to add</text>
+
             <!-- Lap Counter Badge -->
             <g id="lap-badge" class="hidden">
               <rect x="120" y="68" width="60" height="20" rx="10" fill="#F59E0B" opacity="0.12" />
-              <text id="lap-badge-text" x="150" y="81" text-anchor="middle" fill="#D97706" font-size="11" font-weight="700">1 lap</text>
+              <text id="lap-badge-text" x="150" y="81" text-anchor="middle" fill="#D97706" font-size="11"
+                font-weight="700">1 lap</text>
             </g>
           </svg>
         </div>
 
         <!-- Bank Action Button -->
         <div class="flex justify-center w-full">
-          <button id="bank-btn" disabled class="mt-6 w-[82%] py-4 rounded-full font-bold text-lg tracking-wide transition-all duration-300 bg-slate-200 text-slate-400 shadow-none cursor-not-allowed">
+          <button id="bank-btn" disabled
+            class="mt-6 w-[82%] py-4 rounded-full font-bold text-lg tracking-wide transition-all duration-300 bg-slate-200 text-slate-400 shadow-none cursor-not-allowed">
             Bank Push-ups
           </button>
         </div>
-        <p id="bank-hint" class="text-xs mt-3 text-slate-400 text-center">Drag clockwise to add · anticlockwise to correct</p>
+        <p id="bank-hint" class="text-xs mt-3 text-slate-400 text-center">Drag clockwise to add · anticlockwise to
+          correct</p>
+        <a href="../index.html"
+          class="w-full py-3.5 rounded-xl font-bold transition-all bg-red-50 text-red-500 hover:bg-red-100 flex items-center justify-center gap-2"><button>Go
+            to Landing Page</button></a>
       </div>
 
       <!-- 2. STATS TAB -->
@@ -109,23 +148,33 @@
         <!-- Graph -->
         <div class="bg-white rounded-2xl p-4 mb-4 shadow-sm border border-slate-100">
           <h2 class="text-lg font-extrabold text-slate-800 text-center mb-4 tracking-tight">Timeline</h2>
-          
+
           <div class="relative">
             <!-- Fixed Y-Axis Labels Overlay -->
             <div id="y-axis-labels" class="absolute top-0 left-0 bottom-0 pointer-events-none w-10 z-10"></div>
-            
+
             <!-- Horizontally Scrollable SVG Container -->
             <div id="stats-scroll-container" class="overflow-x-auto hide-scrollbar touch-pan-x w-full">
               <div id="stats-graph-container"></div>
             </div>
           </div>
-          
+
           <div class="flex gap-4 justify-center mt-4">
-            <div class="flex items-center gap-1.5"><div class="w-2.5 h-2.5 rounded-sm bg-slate-100"></div><span class="text-[10px] text-slate-500 font-medium">Target</span></div>
-            <div class="flex items-center gap-1.5"><div class="w-2.5 h-2.5 rounded-sm bg-amber-600"></div><span class="text-[10px] text-slate-500 font-medium">Banked</span></div>
-            <div class="flex items-center gap-1.5"><div class="w-2.5 h-2.5 rounded-sm bg-amber-400"></div><span class="text-[10px] text-slate-500 font-medium">Completed</span></div>
+            <div class="flex items-center gap-1.5">
+              <div class="w-2.5 h-2.5 rounded-sm bg-slate-100"></div><span
+                class="text-[10px] text-slate-500 font-medium">Target</span>
+            </div>
+            <div class="flex items-center gap-1.5">
+              <div class="w-2.5 h-2.5 rounded-sm bg-amber-600"></div><span
+                class="text-[10px] text-slate-500 font-medium">Banked</span>
+            </div>
+            <div class="flex items-center gap-1.5">
+              <div class="w-2.5 h-2.5 rounded-sm bg-amber-400"></div><span
+                class="text-[10px] text-slate-500 font-medium">Completed</span>
+            </div>
           </div>
         </div>
+
 
         <!-- Recent Breakdown List -->
         <div class="bg-white rounded-2xl p-5 shadow-sm border border-slate-100">
@@ -133,6 +182,9 @@
           <div id="stats-list"></div>
           <p class="text-xs text-slate-400 mt-4 text-center">Tap any day to edit its target</p>
         </div>
+        <a href="../index.html"
+          class="w-full py-3.5 rounded-xl font-bold transition-all bg-red-50 text-red-500 hover:bg-red-100 flex items-center justify-center gap-2"><button>Go
+            to Landing Page</button></a>
       </div>
 
       <!-- 3. SETTINGS TAB -->
@@ -142,20 +194,27 @@
             <i data-lucide="target" class="text-amber-500 w-5 h-5"></i> Default Daily Target
           </div>
           <div class="text-xs text-slate-500 mb-4">Applies to any day without a custom target.</div>
-          
+
           <div class="flex items-center gap-3 mb-4">
-            <button onclick="changeSetTarget(-10)" class="w-12 h-12 flex items-center justify-center rounded-xl bg-slate-100 text-slate-600 hover:bg-slate-200 transition-colors">
+            <button onclick="changeSetTarget(-10)"
+              class="w-12 h-12 flex items-center justify-center rounded-xl bg-slate-100 text-slate-600 hover:bg-slate-200 transition-colors">
               <i data-lucide="minus" class="w-5 h-5"></i>
             </button>
-            <input id="set-target-input" type="number" class="flex-1 h-12 rounded-xl border-2 border-slate-100 bg-slate-50 text-xl font-bold text-slate-800 text-center outline-none focus:border-amber-400 transition-colors" />
-            <button onclick="changeSetTarget(10)" class="w-12 h-12 flex items-center justify-center rounded-xl bg-slate-100 text-slate-600 hover:bg-slate-200 transition-colors">
+            <input id="set-target-input" type="number"
+              class="flex-1 h-12 rounded-xl border-2 border-slate-100 bg-slate-50 text-xl font-bold text-slate-800 text-center outline-none focus:border-amber-400 transition-colors" />
+            <button onclick="changeSetTarget(10)"
+              class="w-12 h-12 flex items-center justify-center rounded-xl bg-slate-100 text-slate-600 hover:bg-slate-200 transition-colors">
               <i data-lucide="plus" class="w-5 h-5"></i>
             </button>
           </div>
-          <button id="save-target-btn" onclick="saveGlobalTarget()" class="w-full py-3.5 rounded-xl font-bold text-white transition-all bg-gradient-to-r from-amber-400 to-amber-500 shadow-md shadow-amber-500/30 flex items-center justify-center gap-2">
+          <button id="save-target-btn" onclick="saveGlobalTarget()"
+            class="w-full py-3.5 rounded-xl font-bold text-white transition-all bg-gradient-to-r from-amber-400 to-amber-500 shadow-md shadow-amber-500/30 flex items-center justify-center gap-2">
             Save Target
           </button>
         </div>
+        <a href="../index.html"
+          class="w-full py-3.5 rounded-xl font-bold transition-all bg-red-50 text-red-500 hover:bg-red-100 flex items-center justify-center gap-2"><button>Go
+            to Landing Page</button></a>
 
         <div class="bg-white rounded-2xl p-5 shadow-sm border border-slate-100 flex justify-between items-center">
           <div>
@@ -172,43 +231,59 @@
         <div class="bg-white rounded-2xl p-5 shadow-sm border border-red-100 mt-8">
           <div class="text-slate-800 font-bold text-base mb-1">Data</div>
           <div class="text-xs text-slate-500 mb-4">Permanently delete all logged reps and history.</div>
-          <button id="reset-btn" onclick="resetAllData()" class="w-full py-3.5 rounded-xl font-bold transition-all bg-red-50 text-red-500 hover:bg-red-100 flex items-center justify-center gap-2">
+          <button id="reset-btn" onclick="resetAllData()"
+            class="w-full py-3.5 rounded-xl font-bold transition-all bg-red-50 text-red-500 hover:bg-red-100 flex items-center justify-center gap-2">
             Reset All Data
           </button>
         </div>
+
       </div>
     </div>
 
     <!-- Bottom Nav -->
-    <div class="h-[84px] bg-white border-t border-slate-200 flex shrink-0 pb-4 shadow-[0_-4px_20px_rgba(0,0,0,0.02)] z-10">
-      <button onclick="switchTab('counter')" id="nav-counter" class="nav-btn active flex-1 flex flex-col items-center justify-center gap-1.5 pt-3">
+    <div
+      class="h-[84px] bg-white border-t border-slate-200 flex shrink-0 pb-4 shadow-[0_-4px_20px_rgba(0,0,0,0.02)] z-10">
+      <button onclick="switchTab('counter')" id="nav-counter"
+        class="nav-btn active flex-1 flex flex-col items-center justify-center gap-1.5 pt-3">
         <i data-lucide="rotate-ccw" class="w-[22px] h-[22px]"></i>
         <span class="text-[10px] font-bold tracking-wide">Counter</span>
       </button>
-      <button onclick="switchTab('stats')" id="nav-stats" class="nav-btn flex-1 flex flex-col items-center justify-center gap-1.5 pt-3">
+      <button onclick="switchTab('stats')" id="nav-stats"
+        class="nav-btn flex-1 flex flex-col items-center justify-center gap-1.5 pt-3">
         <i data-lucide="bar-chart-2" class="w-[22px] h-[22px]"></i>
         <span class="text-[10px] font-bold tracking-wide">Progress</span>
       </button>
-      <button onclick="switchTab('settings')" id="nav-settings" class="nav-btn flex-1 flex flex-col items-center justify-center gap-1.5 pt-3">
+      <button onclick="switchTab('settings')" id="nav-settings"
+        class="nav-btn flex-1 flex flex-col items-center justify-center gap-1.5 pt-3">
         <i data-lucide="settings" class="w-[22px] h-[22px]"></i>
         <span class="text-[10px] font-bold tracking-wide">Settings</span>
       </button>
     </div>
 
     <!-- Edit Day Modal -->
-    <div id="modal-overlay" class="hidden fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-[200] flex items-end sm:absolute" onclick="closeModal()">
-      <div onclick="event.stopPropagation()" class="bg-white w-full h-auto rounded-t-3xl p-6 pb-10 shadow-2xl transform transition-transform duration-300 translate-y-full" id="modal-content">
+    <div id="modal-overlay"
+      class="hidden fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-[200] flex items-end sm:absolute"
+      onclick="closeModal()">
+      <div onclick="event.stopPropagation()"
+        class="bg-white w-full h-auto rounded-t-3xl p-6 pb-10 shadow-2xl transform transition-transform duration-300 translate-y-full"
+        id="modal-content">
         <div class="w-12 h-1.5 rounded-full bg-slate-200 mx-auto mb-6"></div>
         <div class="text-lg font-bold text-slate-800 mb-1">Set Daily Target</div>
         <div id="modal-date-label" class="text-sm text-slate-500 mb-6 font-medium">Date</div>
-        
+
         <div class="flex items-center gap-4 mb-8">
-          <button onclick="changeModalTarget(-10)" class="w-14 h-14 flex items-center justify-center rounded-2xl bg-slate-100 text-slate-600 active:bg-slate-200"><i data-lucide="minus"></i></button>
-          <input id="modal-target-input" type="number" class="flex-1 h-14 rounded-2xl border-2 border-slate-200 bg-white text-2xl font-extrabold text-slate-800 text-center outline-none focus:border-amber-400" />
-          <button onclick="changeModalTarget(10)" class="w-14 h-14 flex items-center justify-center rounded-2xl bg-slate-100 text-slate-600 active:bg-slate-200"><i data-lucide="plus"></i></button>
+          <button onclick="changeModalTarget(-10)"
+            class="w-14 h-14 flex items-center justify-center rounded-2xl bg-slate-100 text-slate-600 active:bg-slate-200"><i
+              data-lucide="minus"></i></button>
+          <input id="modal-target-input" type="number"
+            class="flex-1 h-14 rounded-2xl border-2 border-slate-200 bg-white text-2xl font-extrabold text-slate-800 text-center outline-none focus:border-amber-400" />
+          <button onclick="changeModalTarget(10)"
+            class="w-14 h-14 flex items-center justify-center rounded-2xl bg-slate-100 text-slate-600 active:bg-slate-200"><i
+              data-lucide="plus"></i></button>
         </div>
-        
-        <button onclick="saveDayTarget()" class="w-full py-4 rounded-2xl bg-gradient-to-r from-amber-400 to-amber-500 text-white text-lg font-bold shadow-lg shadow-amber-500/30 active:scale-95 transition-transform">
+
+        <button onclick="saveDayTarget()"
+          class="w-full py-4 rounded-2xl bg-gradient-to-r from-amber-400 to-amber-500 text-white text-lg font-bold shadow-lg shadow-amber-500/30 active:scale-95 transition-transform">
           Save Target
         </button>
       </div>
@@ -245,9 +320,9 @@
 
     function todayStr() { return fmtDate(new Date()); }
 
-    function parseDate(s) { 
-      const [y, m, d] = s.split('-').map(Number); 
-      return new Date(y, m - 1, d); 
+    function parseDate(s) {
+      const [y, m, d] = s.split('-').map(Number);
+      return new Date(y, m - 1, d);
     }
 
     const DOW = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
@@ -280,7 +355,7 @@
       currentTab = tabId;
       document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
       document.getElementById(`tab-${tabId}`).classList.add('active');
-      
+
       document.querySelectorAll('.nav-btn').forEach(el => {
         el.classList.remove('active', 'text-amber-500');
         el.classList.add('text-slate-400');
@@ -291,7 +366,7 @@
 
       const titles = { counter: '💪 Rep Logger', stats: '📊 Progress', settings: '⚙️ Settings' };
       document.getElementById('header-title').innerText = titles[tabId];
-      
+
       renderApp();
     }
 
@@ -323,15 +398,15 @@
 
       document.getElementById('today-reps').innerText = reps;
       document.getElementById('today-target').innerText = target;
-      
+
       const statsColor = progress >= 1 ? 'text-green-500' : 'text-amber-500';
       document.getElementById('today-stats').className = `text-2xl font-extrabold transition-transform duration-300 ${statsColor}`;
-      
+
       const barColor = progress >= 1 ? 'from-green-400 to-green-500' : 'from-amber-400 to-amber-300';
       const progEl = document.getElementById('today-progress');
       progEl.style.width = `${progress * 100}%`;
       progEl.className = `h-full rounded-full transition-all duration-500 ease-out bg-gradient-to-r ${barColor}`;
-      
+
       if (progress >= 1) document.getElementById('target-smashed').classList.remove('hidden');
       else document.getElementById('target-smashed').classList.add('hidden');
     }
@@ -348,7 +423,7 @@
       const lapSweep = isNeg ? absSweep : arc % 360;
       const pathStr = isNeg ? arcPathNeg(lapSweep) : arcPath(lapSweep);
       const tipPos = lapSweep > 4 ? polar(CX, CY, R, isNeg ? -lapSweep : lapSweep) : null;
-      const arcColor = isNeg ? '#EF4444' : '#F59E0B'; 
+      const arcColor = isNeg ? '#EF4444' : '#F59E0B';
 
       pathEl.setAttribute('d', pathStr || '');
       pathEl.setAttribute('stroke', arcColor);
@@ -357,7 +432,7 @@
         tipGroup.classList.remove('hidden');
         document.getElementById('tip-glow').setAttribute('cx', tipPos.x); document.getElementById('tip-glow').setAttribute('cy', tipPos.y);
         tipCore.setAttribute('cx', tipPos.x); tipCore.setAttribute('cy', tipPos.y); tipCore.setAttribute('stroke', arcColor);
-        
+
         if (isNeg) {
           tipArrow.classList.add('hidden');
           tipMinus.classList.remove('hidden');
@@ -377,7 +452,7 @@
       repsText.textContent = dialReps;
       repsText.setAttribute('fill', isNeg ? '#EF4444' : '#1E293B');
       repsText.setAttribute('font-size', Math.abs(dialReps) > 99 ? '50' : '68');
-      
+
       subText.textContent = isNeg ? 'reps to remove' : (dialReps === 1 ? 'rep' : 'reps to bank');
       subText.setAttribute('fill', isNeg ? '#FCA5A5' : '#94A3B8');
 
@@ -391,10 +466,10 @@
       }
 
       let indsHtml = '';
-      for(let i=0; i < Math.min(lapsComplete, 10); i++) {
+      for (let i = 0; i < Math.min(lapsComplete, 10); i++) {
         indsHtml += `<div class="w-2 h-2 rounded-full bg-amber-500"></div>`;
       }
-      if(lapsComplete > 10) indsHtml += `<span class="text-[10px] text-amber-500 font-bold">+${lapsComplete - 10}</span>`;
+      if (lapsComplete > 10) indsHtml += `<span class="text-[10px] text-amber-500 font-bold">+${lapsComplete - 10}</span>`;
       lapIndicators.innerHTML = indsHtml;
 
       const tdReps = (data.history[todayStr()]?.reps || 0);
@@ -433,21 +508,21 @@
       if (!isTracking) return;
       e.preventDefault();
       const pt = e.touches ? e.touches[0] : e;
-      
+
       const rect = svg.getBoundingClientRect();
       const dist = Math.hypot(pt.clientX - (rect.left + rect.width / 2), pt.clientY - (rect.top + rect.height / 2));
-      if (dist < 30) return; 
+      if (dist < 30) return;
 
       let a = getAngle(pt.clientX, pt.clientY);
       let d = a - lastA;
       if (d > 180) d -= 360;
       if (d < -180) d += 360;
-      
+
       accA += d;
       lastA = a;
       arc = accA;
       dialReps = Math.trunc(arc / DPR);
-      
+
       updateDialVisuals();
     }
 
@@ -468,11 +543,11 @@
       const td = todayStr();
       const dayData = data.history[td] || { reps: 0, target: data.defTarget };
       dayData.reps = Math.max(0, (dayData.reps || 0) + dialReps);
-      dayData.target = dayData.target || data.defTarget; 
+      dayData.target = dayData.target || data.defTarget;
       data.history[td] = dayData;
-      
+
       saveData();
-      
+
       arc = 0; dialReps = 0; accA = 0;
       updateDialVisuals();
 
@@ -486,7 +561,7 @@
       const td = todayStr();
       const datesSet = new Set(Object.keys(data.history));
       datesSet.add(td);
-      
+
       // Force exactly 7 days into the future into our timeline set
       const todayDate = parseDate(td);
       for (let i = 1; i <= 7; i++) {
@@ -494,55 +569,55 @@
         futureDate.setDate(todayDate.getDate() + i);
         datesSet.add(fmtDate(futureDate));
       }
-      
+
       // Filter the dates:
       // 1. Keep "Today"
       // 2. Keep the 7 Future Days
       // 3. Keep Past Days ONLY if they have tracked reps or custom targets
       const activeDates = Array.from(datesSet).filter(date => {
-          if (date === td) return true;
-          
-          const pd = parseDate(date);
-          const pt = parseDate(td);
-          
-          // Allow future days (up to 7 days ahead)
-          if (pd > pt) {
-              const diff = Math.round((pd - pt) / 86400000);
-              return diff <= 7;
-          }
+        if (date === td) return true;
 
-          // Allow past days if they have actual data
-          const dayData = data.history[date];
-          return dayData && ((dayData.reps > 0) || (dayData.target && dayData.target !== data.defTarget));
+        const pd = parseDate(date);
+        const pt = parseDate(td);
+
+        // Allow future days (up to 7 days ahead)
+        if (pd > pt) {
+          const diff = Math.round((pd - pt) / 86400000);
+          return diff <= 7;
+        }
+
+        // Allow past days if they have actual data
+        const dayData = data.history[date];
+        return dayData && ((dayData.reps > 0) || (dayData.target && dayData.target !== data.defTarget));
       }).sort((a, b) => parseDate(a) - parseDate(b));
 
       // Build the gaps for missed past days
       const timeline = [];
       for (let i = 0; i < activeDates.length; i++) {
-          const d1 = activeDates[i];
-          timeline.push({ type: 'day', date: d1 });
+        const d1 = activeDates[i];
+        timeline.push({ type: 'day', date: d1 });
 
-          if (i < activeDates.length - 1) {
-              const d2 = activeDates[i+1];
-              const diff = Math.round((parseDate(d2) - parseDate(d1)) / 86400000);
-              
-              if (diff === 2) {
-                  // Only 1 day gap, show naturally
-                  const missingDay = parseDate(d1);
-                  missingDay.setDate(missingDay.getDate() + 1);
-                  timeline.push({ type: 'day', date: fmtDate(missingDay), empty: true });
-              } else if (diff > 2) {
-                  // Multiple day gap, condense it
-                  timeline.push({ type: 'gap', days: diff - 1 });
-              }
+        if (i < activeDates.length - 1) {
+          const d2 = activeDates[i + 1];
+          const diff = Math.round((parseDate(d2) - parseDate(d1)) / 86400000);
+
+          if (diff === 2) {
+            // Only 1 day gap, show naturally
+            const missingDay = parseDate(d1);
+            missingDay.setDate(missingDay.getDate() + 1);
+            timeline.push({ type: 'day', date: fmtDate(missingDay), empty: true });
+          } else if (diff > 2) {
+            // Multiple day gap, condense it
+            timeline.push({ type: 'gap', days: diff - 1 });
           }
+        }
       }
       return timeline;
     }
 
     function renderStats() {
       const timeline = buildTimelineData();
-      
+
       let maxV = data.defTarget;
       timeline.forEach(item => {
         if (item.type === 'day') {
@@ -553,11 +628,11 @@
 
       const CH = 180, gap = 45, gapW = 40, BW = 28;
       const td = todayStr();
-      
+
       // Calculate total SVG width required
       let totalW = 0;
       timeline.forEach(item => {
-          totalW += (item.type === 'day' ? gap : gapW);
+        totalW += (item.type === 'day' ? gap : gapW);
       });
       totalW += gap / 2; // Right padding
 
@@ -590,14 +665,14 @@
           const tH = (tgt / maxV) * CH;
           const rH = Math.max(0, (reps / maxV) * CH);
           const dayDateObj = parseDate(date);
-          
+
           const targetColor = isFuture ? '#F8FAFC' : '#F1F5F9';
           const textColor = isToday ? '#F59E0B' : (isFuture ? '#CBD5E1' : '#64748B');
 
           svgHtml += `
             <g class="cursor-pointer group" onclick="openModal('${date}', ${tgt})">
               <!-- Hitbox -->
-              <rect x="${currentX}" y="0" width="${gap}" height="${CH+62}" fill="transparent" />
+              <rect x="${currentX}" y="0" width="${gap}" height="${CH + 62}" fill="transparent" />
               <!-- Background Bar -->
               <rect x="${x - BW / 2}" y="${CH - tH + 4}" width="${BW}" height="${tH}" rx="6" fill="${targetColor}" class="transition-colors group-hover:fill-slate-200" />
               <!-- Reps Bar -->
@@ -612,8 +687,8 @@
           const x = currentX + gapW / 2;
           svgHtml += `
             <g>
-              <rect x="${currentX + 2}" y="${CH/2 - 12}" width="${gapW - 4}" height="24" rx="6" fill="#F1F5F9" />
-              <text x="${x}" y="${CH/2 + 3}" text-anchor="middle" font-size="9" font-weight="700" fill="#94A3B8">${item.days}d</text>
+              <rect x="${currentX + 2}" y="${CH / 2 - 12}" width="${gapW - 4}" height="24" rx="6" fill="#F1F5F9" />
+              <text x="${x}" y="${CH / 2 + 3}" text-anchor="middle" font-size="9" font-weight="700" fill="#94A3B8">${item.days}d</text>
               <circle cx="${x - 8}" cy="${CH + 30}" r="1.5" fill="#CBD5E1" />
               <circle cx="${x}" cy="${CH + 30}" r="1.5" fill="#CBD5E1" />
               <circle cx="${x + 8}" cy="${CH + 30}" r="1.5" fill="#CBD5E1" />
@@ -629,13 +704,13 @@
       setTimeout(() => {
         const todayIndex = timeline.findIndex(t => t.date === td);
         if (todayIndex !== -1) {
-            let targetX = gap / 2; // calculate x position of Today
-            for(let i = 0; i < todayIndex; i++) {
-                if (timeline[i].type === 'day') targetX += gap;
-                else if (timeline[i].type === 'gap') targetX += gapW;
-            }
-            const scrollPos = targetX - (scrollContainer.clientWidth / 2) + (gap / 2);
-            scrollContainer.scrollTo({ left: Math.max(0, scrollPos), behavior: 'smooth' });
+          let targetX = gap / 2; // calculate x position of Today
+          for (let i = 0; i < todayIndex; i++) {
+            if (timeline[i].type === 'day') targetX += gap;
+            else if (timeline[i].type === 'gap') targetX += gapW;
+          }
+          const scrollPos = targetX - (scrollContainer.clientWidth / 2) + (gap / 2);
+          scrollContainer.scrollTo({ left: Math.max(0, scrollPos), behavior: 'smooth' });
         }
       }, 50);
 
@@ -643,7 +718,7 @@
       let listHtml = '';
       const listItems = timeline.filter(item => item.type === 'gap' || (item.type === 'day' && parseDate(item.date) <= parseDate(td)));
       const revTimeline = listItems.reverse().slice(0, 20); // Show max 20 recent history items
-      
+
       revTimeline.forEach((item, i) => {
         if (item.type === 'day') {
           const date = item.date;
@@ -686,10 +761,10 @@
     // ─── Settings Logic ──────────────────────────────────────────────────────
     function renderSettings() {
       document.getElementById('set-target-input').value = data.defTarget;
-      
+
       const totalDays = Object.keys(data.history).length;
       const totalReps = Object.values(data.history).reduce((a, d) => a + (d.reps || 0), 0);
-      
+
       document.getElementById('stat-total-days').innerText = totalDays;
       document.getElementById('stat-total-reps').innerText = totalReps.toLocaleString();
     }
@@ -703,12 +778,12 @@
       const input = document.getElementById('set-target-input');
       data.defTarget = Math.max(1, parseInt(input.value) || 100);
       saveData();
-      
+
       const btn = document.getElementById('save-target-btn');
       btn.innerHTML = `<i data-lucide="check" class="w-4 h-4"></i> Saved`;
       btn.className = "w-full py-3.5 rounded-xl font-bold text-white transition-all bg-green-500 shadow-md shadow-green-500/30 flex items-center justify-center gap-2";
       lucide.createIcons();
-      
+
       setTimeout(() => {
         btn.innerHTML = `Save Target`;
         btn.className = "w-full py-3.5 rounded-xl font-bold text-white transition-all bg-gradient-to-r from-amber-400 to-amber-500 shadow-md shadow-amber-500/30 flex items-center justify-center gap-2";
@@ -729,7 +804,7 @@
         }, 3000);
         return;
       }
-      
+
       data.history = {};
       saveData();
       resetConfirming = false;
@@ -746,7 +821,7 @@
       const dObj = parseDate(date);
       document.getElementById('modal-date-label').innerText = date === todayStr() ? 'Today' : dObj.toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric' });
       document.getElementById('modal-target-input').value = currentTarget;
-      
+
       modalOverlay.classList.remove('hidden');
       setTimeout(() => {
         modalContent.classList.remove('translate-y-full');
@@ -769,10 +844,10 @@
     function saveDayTarget() {
       if (!editingDate) return;
       const val = Math.max(1, parseInt(document.getElementById('modal-target-input').value) || data.defTarget);
-      
+
       if (!data.history[editingDate]) data.history[editingDate] = { reps: 0 };
       data.history[editingDate].target = val;
-      
+
       saveData();
       closeModal();
     }
@@ -783,4 +858,5 @@
 
   </script>
 </body>
+
 </html>
