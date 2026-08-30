@@ -8,17 +8,20 @@
   <link rel="icon" href="./images/apple-touch-icon.png" type="image/png">
   
   <!-- Title Navbar CSS -->
-  <style>  
-    ul {
-      list-style-type: none;
-      margin: 0;
-      padding: 0;
+  <style>
+
+    .TNbar {
+      background: #ffffff;
+      background: linear-gradient(90deg,rgba(255, 255, 255, 1) 0%, rgba(2, 73, 156, 1) 50%, rgba(80, 143, 233, 1) 100%);
       display: flex;
-      background-color: #add8e6;
-      
     }
 
-    ul li a {
+    .TNbar ul {
+      list-style-type: none;
+      display: flex;
+    }
+
+    .TNbar ul li a {
       display: block;
       padding: 14px 16px;
     }
@@ -27,14 +30,16 @@
 
 <body>
   <!-- Title Navbar -->
-  <h1>Nomicon Nook</h1>
+  <div class="TNbar">
+    <h1>Nomicon Nook</h1>
 
-  <ul>
-    <li><a href="">example0</a></li>
-    <li><a href="">example1</a></li>
-    <li><a href="">example2</a></li>
-    <li><a href="">example3</a></li>
-  </ul>
+    <ul>
+      <li><a href="">example0</a></li>
+      <li><a href="">example1</a></li>
+      <li><a href="">example2</a></li>
+      <li><a href="">example3</a></li>
+    </ul>
+  </div>
 
   <!-- Images proclaiming my website -->
   <img src="./images/UndConst.png" alt="Under Construction">
