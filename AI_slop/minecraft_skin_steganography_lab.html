@@ -1,0 +1,855 @@
+<!DOCTYPE html>
+<html lang="en" class="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Minecraft Skin Steganography Tool</title>
+  
+  <!-- Fonts: Inter & Fira Code -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;600;700&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  
+  <!-- FontAwesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Inter', 'sans-serif'],
+            mono: ['Fira Code', 'monospace'],
+          }
+        }
+      }
+    }
+  </script>
+
+  <style>
+    /* Crisp pixel rendering for 64x64 skin textures */
+    .pixelated {
+      image-rendering: pixelated;
+      image-rendering: crisp-edges;
+    }
+
+    /* Crisp tactical borders and shadows */
+    .crisp-card {
+      background: #ffffff;
+      border: 2px solid #cbd5e1;
+      box-shadow: 2px 2px 0px rgba(0, 0, 0, 0.05);
+    }
+
+    /* Custom scrollbars */
+    ::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    ::-webkit-scrollbar-track {
+      background: #f1f5f9;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #94a3b8;
+    }
+  </style>
+</head>
+<body class="bg-slate-100 text-slate-900 font-sans min-h-screen flex flex-col justify-between antialiased selection:bg-slate-300">
+
+  <!-- Top Bar Header -->
+  <header class="bg-white border-b-2 border-slate-300 px-4 lg:px-8 py-3">
+    <div class="max-w-4xl mx-auto flex items-center justify-between">
+      <div class="flex items-center gap-3">
+        <div class="w-8 h-8 bg-slate-900 text-white flex items-center justify-center font-bold text-sm">
+          <i class="fa-solid fa-cube"></i>
+        </div>
+        <div>
+          <h1 class="font-bold text-sm text-slate-900 uppercase tracking-wide">
+            Minecraft Skin Steganography Encoder & Decoder
+          </h1>
+          <p class="text-xs text-slate-500">Lossless Binary PNG Engine • Base Layer Alpha & Unused Pixel Steganography</p>
+        </div>
+      </div>
+      <span id="status-badge" class="text-xs font-mono font-bold bg-slate-100 text-slate-700 px-2.5 py-1 border border-slate-300">
+        Ready
+      </span>
+    </div>
+  </header>
+
+  <!-- Toast Notification Bar -->
+  <div id="toast-container" class="fixed top-4 right-4 z-50 flex flex-col gap-2 pointer-events-none"></div>
+
+  <!-- Main Content Workspace -->
+  <main class="max-w-4xl w-full mx-auto p-4 sm:p-6 flex flex-col gap-6 flex-grow">
+
+    <!-- PART 1: SKIN SOURCE (UPLOAD / MINECRAFT API LOOKUP) -->
+    <section class="crisp-card p-5 flex flex-col gap-4">
+      <div class="flex items-center justify-between border-b-2 border-slate-200 pb-2">
+        <h2 class="text-xs font-bold text-slate-900 uppercase tracking-wider flex items-center gap-2">
+          <span class="w-5 h-5 bg-slate-900 text-white flex items-center justify-center text-xs font-mono">1</span>
+          Select Minecraft Skin
+        </h2>
+        <div class="flex items-center gap-2">
+          <span class="text-xs font-bold text-slate-600">Arm Model:</span>
+          <button id="btn-steve" onclick="setModelType('steve', true)" class="px-2 py-0.5 border-2 border-slate-900 bg-slate-900 text-white text-xs font-bold">Steve (4px)</button>
+          <button id="btn-alex" onclick="setModelType('alex', true)" class="px-2 py-0.5 border-2 border-slate-300 bg-white text-slate-700 hover:border-slate-400 text-xs font-bold">Alex (3px)</button>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <!-- Option A: File Drag & Drop Upload -->
+        <div class="border-2 border-dashed border-slate-300 hover:border-slate-900 bg-slate-50 p-4 flex flex-col items-center justify-center text-center cursor-pointer relative transition-colors">
+          <input type="file" id="skin-input-file" accept="image/png" onchange="handleFileUpload(event)" class="absolute inset-0 opacity-0 cursor-pointer w-full h-full z-10">
+          <i class="fa-solid fa-file-arrow-up text-2xl text-slate-400 mb-2"></i>
+          <p class="text-xs font-bold text-slate-800">Upload Skin PNG File</p>
+          <p class="text-[11px] text-slate-500">Drag & drop or click to choose 64x64 PNG</p>
+        </div>
+
+        <!-- Option B: Fetch Skin from Minecraft API Username -->
+        <div class="bg-slate-50 border-2 border-slate-200 p-4 flex flex-col justify-between gap-2">
+          <label class="text-xs font-bold text-slate-800 flex items-center gap-1.5">
+            <i class="fa-solid fa-user text-slate-600"></i> Pull Skin from Minecraft API
+          </label>
+          <div class="flex items-center gap-2">
+            <input type="text" id="username-input" placeholder="Minecraft username (e.g. Notch)..." onkeydown="if(event.key==='Enter') fetchSkinByUsername()" class="w-full bg-white border-2 border-slate-300 px-3 py-2 text-xs font-mono text-slate-900 focus:outline-none focus:border-slate-900">
+            <button onclick="fetchSkinByUsername()" class="px-4 py-2 bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs uppercase border-2 border-slate-900 transition-colors shrink-0">
+              Fetch
+            </button>
+          </div>
+          <p class="text-[10px] text-slate-500">Fetches Java player skin via Mojang API proxy</p>
+        </div>
+      </div>
+
+      <!-- Loaded Skin Visual Context Window -->
+      <div id="loaded-skin-card" class="bg-slate-900 text-white p-3 border-2 border-slate-900 flex items-center justify-between gap-3">
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 bg-slate-800 border border-slate-700 p-0.5 shrink-0 flex items-center justify-center">
+            <canvas id="skin-source-thumb" width="64" height="64" class="w-8 h-8 pixelated object-contain"></canvas>
+          </div>
+          <div class="flex flex-col">
+            <span class="text-[10px] font-mono text-slate-400 uppercase tracking-wider">Active Skin Source</span>
+            <span id="skin-source-title" class="text-xs font-bold text-white font-mono truncate max-w-[240px] sm:max-w-md">Default Blank Skin</span>
+          </div>
+        </div>
+        <div class="flex items-center gap-2 shrink-0">
+          <span id="skin-model-badge" class="text-[10px] font-mono font-bold bg-slate-800 text-emerald-400 border border-slate-700 px-2 py-0.5">
+            Steve (4px)
+          </span>
+          <span class="text-[10px] font-mono bg-slate-800 text-slate-300 border border-slate-700 px-2 py-0.5 hidden sm:inline-block">
+            64x64 PNG
+          </span>
+        </div>
+      </div>
+    </section>
+
+    <!-- PART 2: EDITABLE SECRET TEXT WINDOW -->
+    <section class="crisp-card p-5 flex flex-col gap-3">
+      <div class="flex items-center justify-between border-b-2 border-slate-200 pb-2">
+        <h2 class="text-xs font-bold text-slate-900 uppercase tracking-wider flex items-center gap-2">
+          <span class="w-5 h-5 bg-slate-900 text-white flex items-center justify-center text-xs font-mono">2</span>
+          Encoded Message Text (Editable)
+        </h2>
+        <span id="char-counter" class="text-xs font-mono font-bold text-slate-700 bg-slate-100 px-2 py-0.5 border border-slate-300">
+          0 / 4,959 bytes
+        </span>
+      </div>
+
+      <p class="text-xs text-slate-600 leading-normal">
+        This window displays decoded text from the uploaded skin. Type or edit text below to encode a new message. Unused pixels store full $RGBA$ bytes, while base layer pixels modify <strong>only the Alpha ($A$) channel</strong> (leaving base $RGB$ colors 100% untouched).
+      </p>
+
+      <textarea id="secret-text-input" rows="8" placeholder="Type or paste your secret message here... (e.g. coordinates, passwords, notes)" oninput="handleTextareaInput()" class="w-full bg-slate-50 border-2 border-slate-300 p-3 text-xs font-mono text-slate-900 focus:outline-none focus:border-slate-900 focus:bg-white resize-y transition-colors"></textarea>
+    </section>
+
+    <!-- PART 3: DOWNLOAD ACTION & SKIN PREVIEW -->
+    <section class="crisp-card p-5 flex flex-col gap-4">
+      <div class="flex items-center justify-between border-b-2 border-slate-200 pb-2">
+        <h2 class="text-xs font-bold text-slate-900 uppercase tracking-wider flex items-center gap-2">
+          <span class="w-5 h-5 bg-slate-900 text-white flex items-center justify-center text-xs font-mono">3</span>
+          Download Encoded Skin
+        </h2>
+      </div>
+
+      <div class="flex flex-col sm:flex-row items-center justify-between gap-4">
+        <!-- Download Button -->
+        <button onclick="downloadEncodedSkinPNG()" class="w-full sm:w-auto flex-1 px-6 py-3 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs uppercase border-2 border-emerald-800 transition-colors flex items-center justify-center gap-2 shadow-sm">
+          <i class="fa-solid fa-download text-sm"></i> Download Encoded Skin PNG
+        </button>
+
+        <!-- Compact Skin PNG Preview Display -->
+        <div class="flex items-center gap-3 bg-slate-50 border-2 border-slate-200 p-2 shrink-0">
+          <div class="w-12 h-12 bg-white border border-slate-300 p-0.5 flex items-center justify-center">
+            <canvas id="skin-preview-canvas" width="64" height="64" class="w-10 h-10 pixelated object-contain"></canvas>
+          </div>
+          <div class="text-[11px] font-mono text-slate-600">
+            <span class="block font-bold text-slate-900">64x64 Texture</span>
+            <span id="skin-status-info">Ready to export</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- Footer -->
+  <footer class="border-t-2 border-slate-300 bg-white py-3 px-4 text-center text-xs text-slate-500 font-medium">
+    Minecraft Skin Steganography Tool • Binary PNG Engine & Base Layer Alpha Steganography
+  </footer>
+
+  <script>
+    // Global Application State
+    const state = {
+      modelType: 'steve', // 'steve' or 'alex'
+      rawLoadedPixels: new Uint8Array(64 * 64 * 4),  // Raw unpremultiplied 64x64 RGBA bytes from loaded PNG
+      rawEncodedPixels: new Uint8Array(64 * 64 * 4), // Raw unpremultiplied 64x64 RGBA bytes for export
+      sourceTitle: 'Default Blank Skin'
+    };
+
+    // Precomputed CRC32 lookup table for PNG binary encoding
+    const CRC32_TABLE = new Uint32Array(256);
+    for (let n = 0; n < 256; n++) {
+      let c = n;
+      for (let k = 0; k < 8; k++) {
+        c = (c & 1) ? (0xEDB88320 ^ (c >>> 1)) : (c >>> 1);
+      }
+      CRC32_TABLE[n] = c;
+    }
+
+    function calcCRC32(buf, offset, length) {
+      let c = 0xFFFFFFFF;
+      for (let i = 0; i < length; i++) {
+        c = CRC32_TABLE[(c ^ buf[offset + i]) & 0xFF] ^ (c >>> 8);
+      }
+      return (c ^ 0xFFFFFFFF) >>> 0;
+    }
+
+    function calcAdler32(buf) {
+      let s1 = 1, s2 = 0;
+      for (let i = 0; i < buf.length; i++) {
+        s1 = (s1 + buf[i]) % 65521;
+        s2 = (s2 + s1) % 65521;
+      }
+      return ((s2 << 16) | s1) >>> 0;
+    }
+
+    window.onload = function() {
+      createBlankSkin();
+      decodeMessageFromSkin();
+    };
+
+    function showToast(message, isError = false) {
+      const container = document.getElementById('toast-container');
+      const toast = document.createElement('div');
+      toast.className = `pointer-events-auto px-3 py-2 text-xs font-bold border-2 text-white shadow-md flex items-center gap-2 ${
+        isError ? 'bg-red-800 border-red-950' : 'bg-slate-900 border-slate-950'
+      }`;
+      toast.innerHTML = `<i class="fa-solid ${isError ? 'fa-circle-exclamation' : 'fa-circle-check'}"></i> <span>${message}</span>`;
+      container.appendChild(toast);
+      setTimeout(() => {
+        toast.style.opacity = '0';
+        toast.style.transition = 'opacity 0.2s ease';
+        setTimeout(() => toast.remove(), 200);
+      }, 2500);
+    }
+
+    function setModelType(type, userTriggered = false) {
+      state.modelType = type;
+      const btnSteve = document.getElementById('btn-steve');
+      const btnAlex = document.getElementById('btn-alex');
+
+      if (type === 'steve') {
+        btnSteve.className = 'px-2 py-0.5 border-2 border-slate-900 bg-slate-900 text-white text-xs font-bold';
+        btnAlex.className = 'px-2 py-0.5 border-2 border-slate-300 bg-white text-slate-700 hover:border-slate-400 text-xs font-bold';
+      } else {
+        btnAlex.className = 'px-2 py-0.5 border-2 border-slate-900 bg-slate-900 text-white text-xs font-bold';
+        btnSteve.className = 'px-2 py-0.5 border-2 border-slate-300 bg-white text-slate-700 hover:border-slate-400 text-xs font-bold';
+      }
+
+      updateSkinSourceContextCard();
+
+      if (userTriggered) {
+        decodeMessageFromSkin();
+      }
+    }
+
+    function createBlankSkin() {
+      const canvas = document.createElement('canvas');
+      canvas.width = 64;
+      canvas.height = 64;
+      const ctx = canvas.getContext('2d');
+      ctx.clearRect(0, 0, 64, 64);
+
+      const armW = state.modelType === 'alex' ? 3 : 4;
+      
+      function fillBoxUV(u, v, w, h, d, color) {
+        ctx.fillStyle = color;
+        ctx.fillRect(u + d, v, w, d);
+        ctx.fillRect(u + d + w, v, w, d);
+        ctx.fillRect(u, v + d, d, h);
+        ctx.fillRect(u + d, v + d, w, h);
+        ctx.fillRect(u + d + w, v + d, d, h);
+        ctx.fillRect(u + d + w + d, v + d, w, h);
+      }
+
+      fillBoxUV(0, 0, 8, 8, 8, '#ffc0bd'); // Head
+      fillBoxUV(16, 16, 8, 12, 4, '#00908b'); // Body
+      fillBoxUV(0, 16, 4, 12, 4, '#2b2b68'); // Right Leg
+      fillBoxUV(40, 16, armW, 12, 4, '#00908b'); // Right Arm
+      fillBoxUV(16, 48, 4, 12, 4, '#2b2b68'); // Left Leg
+      fillBoxUV(32, 48, armW, 12, 4, '#00908b'); // Left Arm
+
+      const imgData = ctx.getImageData(0, 0, 64, 64);
+      for (let i = 0; i < imgData.data.length; i += 4) {
+        if (imgData.data[i + 3] > 0) imgData.data[i + 3] = 255;
+      }
+
+      state.rawLoadedPixels.set(imgData.data);
+      state.rawEncodedPixels.set(imgData.data);
+      
+      state.sourceTitle = 'Default Blank Skin';
+      updateSkinSourceContextCard();
+      updatePreviewDisplay();
+    }
+
+    // Generates 64x64 pixel region map array: 0 = Unused Padding, 1 = Base Layer, 2 = Overlay Layer
+    function generatePixelMap(modelType = 'steve') {
+      const map = new Uint8Array(64 * 64); // Default to 0 (Unused)
+
+      function markRect(x, y, w, h, type) {
+        for (let r = y; r < y + h; r++) {
+          for (let c = x; c < x + w; c++) {
+            if (c >= 0 && c < 64 && r >= 0 && r < 64) {
+              map[r * 64 + c] = type;
+            }
+          }
+        }
+      }
+
+      function markBox(u, v, w, h, d, type) {
+        markRect(u + d, v, w, d, type);
+        markRect(u + d + w, v, w, d, type);
+        markRect(u, v + d, d, h, type);
+        markRect(u + d, v + d, w, h, type);
+        markRect(u + d + w, v + d, d, h, type);
+        markRect(u + d + w + d, v + d, w, h, type);
+      }
+
+      const armW = modelType === 'alex' ? 3 : 4;
+
+      // Head Base (1) & Overlay (2)
+      markBox(0, 0, 8, 8, 8, 1);
+      markBox(32, 0, 8, 8, 8, 2);
+
+      // Right Leg Base & Overlay
+      markBox(0, 16, 4, 12, 4, 1);
+      markBox(0, 32, 4, 12, 4, 2);
+
+      // Body Base & Overlay
+      markBox(16, 16, 8, 12, 4, 1);
+      markBox(16, 32, 8, 12, 4, 2);
+
+      // Right Arm Base & Overlay
+      markBox(40, 16, armW, 12, 4, 1);
+      markBox(40, 32, armW, 12, 4, 2);
+
+      // Left Leg Base & Overlay
+      markBox(16, 48, 4, 12, 4, 1);
+      markBox(0, 48, 4, 12, 4, 2);
+
+      // Left Arm Base & Overlay
+      markBox(32, 48, armW, 12, 4, 1);
+      markBox(48, 48, armW, 12, 4, 2);
+
+      return map;
+    }
+
+    // Calculates maximum UTF-8 byte capacity for current model
+    function getMaxCapacityBytes() {
+      const map = generatePixelMap(state.modelType);
+      let totalBytes = 0;
+      for (let i = 0; i < map.length; i++) {
+        if (map[i] === 0) totalBytes += 4;      // Unused padding pixels: 4 bytes (R, G, B, A)
+        else if (map[i] === 1) totalBytes += 1; // Base layer pixels: 1 byte in Alpha channel (RGB untouched)
+      }
+      return totalBytes - 1; // Reserve 1 byte for null terminator (0x00)
+    }
+
+    // Decompresses PNG IDAT chunks directly into raw unpremultiplied 64x64 RGBA Uint8Array
+    async function decodePNGToRawRGBA(arrayBuffer) {
+      const bytes = new Uint8Array(arrayBuffer);
+      const sig = [137, 80, 78, 71, 13, 10, 26, 10];
+      for (let i = 0; i < 8; i++) {
+        if (bytes[i] !== sig[i]) throw new Error("Invalid PNG signature");
+      }
+
+      let pos = 8;
+      let idatChunks = [];
+      let width = 64, height = 64;
+
+      while (pos < bytes.length) {
+        const len = (bytes[pos] << 24) | (bytes[pos+1] << 16) | (bytes[pos+2] << 8) | bytes[pos+3];
+        const type = String.fromCharCode(bytes[pos+4], bytes[pos+5], bytes[pos+6], bytes[pos+7]);
+        const dataPos = pos + 8;
+        
+        if (type === 'IHDR') {
+          width = (bytes[dataPos] << 24) | (bytes[dataPos+1] << 16) | (bytes[dataPos+2] << 8) | bytes[dataPos+3];
+          height = (bytes[dataPos+4] << 24) | (bytes[dataPos+5] << 16) | (bytes[dataPos+6] << 8) | bytes[dataPos+7];
+        } else if (type === 'IDAT') {
+          idatChunks.push(bytes.subarray(dataPos, dataPos + len));
+        }
+        pos += 12 + len;
+      }
+
+      let totalIdatLen = idatChunks.reduce((acc, chunk) => acc + chunk.length, 0);
+      let combinedIdat = new Uint8Array(totalIdatLen);
+      let offset = 0;
+      for (const chunk of idatChunks) {
+        combinedIdat.set(chunk, offset);
+        offset += chunk.length;
+      }
+
+      let decompressed;
+      try {
+        const ds = new DecompressionStream('deflate');
+        const writer = ds.writable.getWriter();
+        writer.write(combinedIdat);
+        writer.close();
+        const response = new Response(ds.readable);
+        const decompBuffer = await response.arrayBuffer();
+        decompressed = new Uint8Array(decompBuffer);
+      } catch (e1) {
+        const dsRaw = new DecompressionStream('deflate-raw');
+        const writer = dsRaw.writable.getWriter();
+        writer.write(combinedIdat.subarray(2, combinedIdat.length - 4));
+        writer.close();
+        const response = new Response(dsRaw.readable);
+        const decompBuffer = await response.arrayBuffer();
+        decompressed = new Uint8Array(decompBuffer);
+      }
+
+      // Unfilter scanlines (64x64 RGBA)
+      const bpp = 4;
+      const stride = width * bpp; // 256
+      const rawPixels = new Uint8Array(width * height * bpp);
+      let srcPos = 0;
+
+      for (let y = 0; y < height; y++) {
+        const filter = decompressed[srcPos++];
+        const lineStart = y * stride;
+
+        for (let x = 0; x < stride; x++) {
+          const raw = decompressed[srcPos++];
+          let recon = 0;
+          const left = (x >= bpp) ? rawPixels[lineStart + x - bpp] : 0;
+          const up = (y > 0) ? rawPixels[(y - 1) * stride + x] : 0;
+          const corner = (y > 0 && x >= bpp) ? rawPixels[(y - 1) * stride + x - bpp] : 0;
+
+          if (filter === 0) recon = raw;
+          else if (filter === 1) recon = (raw + left) & 0xFF;
+          else if (filter === 2) recon = (raw + up) & 0xFF;
+          else if (filter === 3) recon = (raw + Math.floor((left + up) / 2)) & 0xFF;
+          else if (filter === 4) {
+            const p = left + up - corner;
+            const pa = Math.abs(p - left);
+            const pb = Math.abs(p - up);
+            const pc = Math.abs(p - corner);
+            let pr = left;
+            if (pa <= pb && pa <= pc) pr = left;
+            else if (pb <= pc) pr = up;
+            else pr = corner;
+            recon = (raw + pr) & 0xFF;
+          }
+          rawPixels[lineStart + x] = recon;
+        }
+      }
+
+      return rawPixels;
+    }
+
+    // Encodes raw unpremultiplied 64x64 RGBA Uint8Array into a binary PNG Blob
+    async function encodeRawRGBAToPNGBlob(rawPixels) {
+      const width = 64, height = 64, bpp = 4;
+      const stride = width * bpp; // 256
+      
+      const uncompressedScanlines = new Uint8Array(height * (stride + 1));
+      for (let y = 0; y < height; y++) {
+        uncompressedScanlines[y * (stride + 1)] = 0; // Filter 0 (None)
+        uncompressedScanlines.set(
+          rawPixels.subarray(y * stride, (y + 1) * stride),
+          y * (stride + 1) + 1
+        );
+      }
+
+      let deflateCompressed;
+      try {
+        const cs = new CompressionStream('deflate-raw');
+        const writer = cs.writable.getWriter();
+        writer.write(uncompressedScanlines);
+        writer.close();
+        const response = new Response(cs.readable);
+        const compBuf = await response.arrayBuffer();
+        deflateCompressed = new Uint8Array(compBuf);
+      } catch (e) {
+        const cs = new CompressionStream('deflate');
+        const writer = cs.writable.getWriter();
+        writer.write(uncompressedScanlines);
+        writer.close();
+        const response = new Response(cs.readable);
+        const compBuf = await response.arrayBuffer();
+        deflateCompressed = new Uint8Array(compBuf);
+      }
+
+      const adler = calcAdler32(uncompressedScanlines);
+      const zlibBuf = new Uint8Array(2 + deflateCompressed.length + 4);
+      zlibBuf[0] = 0x78;
+      zlibBuf[1] = 0x01;
+      zlibBuf.set(deflateCompressed, 2);
+      const adlerPos = 2 + deflateCompressed.length;
+      zlibBuf[adlerPos] = (adler >>> 24) & 0xFF;
+      zlibBuf[adlerPos + 1] = (adler >>> 16) & 0xFF;
+      zlibBuf[adlerPos + 2] = (adler >>> 8) & 0xFF;
+      zlibBuf[adlerPos + 3] = adler & 0xFF;
+
+      const signature = new Uint8Array([137, 80, 78, 71, 13, 10, 26, 10]);
+
+      function makeChunk(typeStr, dataBytes) {
+        const len = dataBytes.length;
+        const chunk = new Uint8Array(4 + 4 + len + 4);
+        chunk[0] = (len >>> 24) & 0xFF;
+        chunk[1] = (len >>> 16) & 0xFF;
+        chunk[2] = (len >>> 8) & 0xFF;
+        chunk[3] = len & 0xFF;
+        chunk[4] = typeStr.charCodeAt(0);
+        chunk[5] = typeStr.charCodeAt(1);
+        chunk[6] = typeStr.charCodeAt(2);
+        chunk[7] = typeStr.charCodeAt(3);
+        chunk.set(dataBytes, 8);
+
+        const crc = calcCRC32(chunk, 4, 4 + len);
+        const crcPos = 8 + len;
+        chunk[crcPos] = (crc >>> 24) & 0xFF;
+        chunk[crcPos + 1] = (crc >>> 16) & 0xFF;
+        chunk[crcPos + 2] = (crc >>> 8) & 0xFF;
+        chunk[crcPos + 3] = crc & 0xFF;
+        return chunk;
+      }
+
+      const ihdrData = new Uint8Array([0, 0, 0, 64, 0, 0, 0, 64, 8, 6, 0, 0, 0]);
+      const ihdrChunk = makeChunk('IHDR', ihdrData);
+      const idatChunk = makeChunk('IDAT', zlibBuf);
+      const iendChunk = makeChunk('IEND', new Uint8Array(0));
+
+      const pngBytes = new Uint8Array(signature.length + ihdrChunk.length + idatChunk.length + iendChunk.length);
+      let p = 0;
+      pngBytes.set(signature, p); p += signature.length;
+      pngBytes.set(ihdrChunk, p); p += ihdrChunk.length;
+      pngBytes.set(idatChunk, p); p += idatChunk.length;
+      pngBytes.set(iendChunk, p); p += iendChunk.length;
+
+      return new Blob([pngBytes], { type: 'image/png' });
+    }
+
+    // Decodes text from raw pixel stream given a model type
+    function extractTextForModel(modelType) {
+      const pixels = state.rawEncodedPixels;
+      const map = generatePixelMap(modelType);
+      const extractedBytes = [];
+      let foundNull = false;
+
+      for (let y = 0; y < 64; y++) {
+        for (let x = 0; x < 64; x++) {
+          if (foundNull) break;
+
+          const pxIdx = y * 64 + x;
+          const region = map[pxIdx];
+          const offset = pxIdx * 4;
+
+          if (region === 2) {
+            // OVERLAY LAYER: Skipped
+            continue;
+          } else if (region === 0) {
+            // UNUSED PADDING: Read 4 full bytes (R, G, B, A)
+            for (let c = 0; c < 4; c++) {
+              const byteVal = pixels[offset + c];
+              if (byteVal === 0x00) {
+                foundNull = true;
+                break;
+              }
+              extractedBytes.push(byteVal);
+            }
+          } else if (region === 1) {
+            // BASE LAYER: Read 1 byte from Alpha (A) channel ONLY (R, G, B untouched)
+            const aVal = pixels[offset + 3];
+            if (aVal === 0x00) {
+              foundNull = true;
+              break;
+            }
+            extractedBytes.push(aVal);
+          }
+        }
+        if (foundNull) break;
+      }
+
+      if (extractedBytes.length === 0) {
+        return { text: '', length: 0, bytesCount: 0 };
+      }
+
+      const uint8Arr = new Uint8Array(extractedBytes);
+      let decodedText = '';
+
+      try {
+        decodedText = new TextDecoder('utf-8', { fatal: true }).decode(uint8Arr);
+      } catch (e) {
+        return { text: '', length: 0, bytesCount: 0 };
+      }
+
+      // Sanity check printable characters
+      const isPrintable = decodedText.length > 0 && decodedText.split('').every(ch => {
+        const code = ch.charCodeAt(0);
+        if (code === 65533) return false; // Exclude U+FFFD replacement char
+        return code === 10 || code === 13 || code === 9 || (code >= 32 && code <= 0xD7FF) || (code >= 0xE000 && code < 0xFFFD);
+      });
+
+      if (!isPrintable) {
+        return { text: '', length: 0, bytesCount: 0 };
+      }
+
+      return {
+        text: decodedText,
+        length: decodedText.length,
+        bytesCount: extractedBytes.length
+      };
+    }
+
+    function decodeMessageFromSkin() {
+      const decodedResult = extractTextForModel(state.modelType);
+      const finalMessage = decodedResult.text;
+
+      const textarea = document.getElementById('secret-text-input');
+      textarea.value = finalMessage;
+      updateCharCounter();
+
+      const statusBadge = document.getElementById('status-badge');
+      if (finalMessage.length > 0) {
+        statusBadge.innerText = 'Payload Extracted';
+        statusBadge.className = 'text-xs font-mono font-bold bg-emerald-100 text-emerald-800 px-2.5 py-1 border border-emerald-300';
+      } else {
+        statusBadge.innerText = 'No Text Detected';
+        statusBadge.className = 'text-xs font-mono font-bold bg-slate-100 text-slate-700 px-2.5 py-1 border border-slate-300';
+      }
+    }
+
+    // Encodes current textarea text into raw pixel array (A channel for base layer, RGBA for unused space)
+    function encodeMessageToSkin() {
+      const text = document.getElementById('secret-text-input').value;
+      const textBytes = new TextEncoder().encode(text);
+
+      const bytesToEncode = new Uint8Array(textBytes.length + 1);
+      bytesToEncode.set(textBytes, 0);
+      bytesToEncode[textBytes.length] = 0x00; // Null terminator
+
+      // Reset encoded pixels to clean loaded skin pixels
+      state.rawEncodedPixels.set(state.rawLoadedPixels);
+
+      const map = generatePixelMap(state.modelType);
+      let bytePtr = 0;
+
+      for (let y = 0; y < 64; y++) {
+        for (let x = 0; x < 64; x++) {
+          if (bytePtr >= bytesToEncode.length) break;
+
+          const pxIdx = y * 64 + x;
+          const region = map[pxIdx];
+          const offset = pxIdx * 4;
+
+          if (region === 2) {
+            // OVERLAY LAYER: Skipped
+            continue;
+          } else if (region === 0) {
+            // UNUSED PADDING: Store 4 bytes in R, G, B, A
+            state.rawEncodedPixels[offset + 0] = bytePtr < bytesToEncode.length ? bytesToEncode[bytePtr++] : 0;
+            state.rawEncodedPixels[offset + 1] = bytePtr < bytesToEncode.length ? bytesToEncode[bytePtr++] : 0;
+            state.rawEncodedPixels[offset + 2] = bytePtr < bytesToEncode.length ? bytesToEncode[bytePtr++] : 0;
+            state.rawEncodedPixels[offset + 3] = bytePtr < bytesToEncode.length ? bytesToEncode[bytePtr++] : 0;
+          } else if (region === 1) {
+            // BASE LAYER: Store 1 byte in Alpha (A) channel ONLY (R, G, B colors untouched!)
+            state.rawEncodedPixels[offset + 3] = bytePtr < bytesToEncode.length ? bytesToEncode[bytePtr++] : 255;
+          }
+        }
+        if (bytePtr >= bytesToEncode.length) break;
+      }
+
+      updatePreviewDisplay();
+      updateCharCounter();
+    }
+
+    function handleTextareaInput() {
+      const textarea = document.getElementById('secret-text-input');
+      const maxBytes = getMaxCapacityBytes();
+      
+      const encoder = new TextEncoder();
+      let currentBytes = encoder.encode(textarea.value);
+
+      if (currentBytes.length > maxBytes) {
+        let truncated = textarea.value;
+        while (encoder.encode(truncated).length > maxBytes && truncated.length > 0) {
+          truncated = truncated.slice(0, -1);
+        }
+        textarea.value = truncated;
+        showToast(`Maximum capacity limit of ${maxBytes.toLocaleString()} bytes reached!`, true);
+      }
+
+      encodeMessageToSkin();
+    }
+
+    function updateCharCounter() {
+      const text = document.getElementById('secret-text-input').value;
+      const currentBytes = new TextEncoder().encode(text).length;
+      const maxBytes = getMaxCapacityBytes();
+
+      const counterEl = document.getElementById('char-counter');
+      counterEl.innerText = `${currentBytes.toLocaleString()} / ${maxBytes.toLocaleString()} bytes`;
+
+      if (currentBytes >= maxBytes) {
+        counterEl.className = 'text-xs font-mono font-bold text-red-700 bg-red-100 px-2 py-0.5 border border-red-300';
+      } else if (currentBytes > 0) {
+        counterEl.className = 'text-xs font-mono font-bold text-emerald-800 bg-emerald-100 px-2 py-0.5 border border-emerald-300';
+      } else {
+        counterEl.className = 'text-xs font-mono font-bold text-slate-700 bg-slate-100 px-2 py-0.5 border border-slate-300';
+      }
+    }
+
+    function updateSkinSourceContextCard() {
+      document.getElementById('skin-source-title').innerText = state.sourceTitle;
+      
+      const badge = document.getElementById('skin-model-badge');
+      if (state.modelType === 'alex') {
+        badge.innerText = 'Alex (3px)';
+        badge.className = 'text-[10px] font-mono font-bold bg-slate-800 text-sky-400 border border-slate-700 px-2 py-0.5';
+      } else {
+        badge.innerText = 'Steve (4px)';
+        badge.className = 'text-[10px] font-mono font-bold bg-slate-800 text-emerald-400 border border-slate-700 px-2 py-0.5';
+      }
+
+      const thumbCanvas = document.getElementById('skin-source-thumb');
+      const tCtx = thumbCanvas.getContext('2d');
+      const imgData = tCtx.createImageData(64, 64);
+      imgData.data.set(state.rawLoadedPixels);
+      tCtx.putImageData(imgData, 0, 0);
+    }
+
+    function updatePreviewDisplay() {
+      const previewCanvas = document.getElementById('skin-preview-canvas');
+      const pCtx = previewCanvas.getContext('2d');
+      const imgData = pCtx.createImageData(64, 64);
+      imgData.data.set(state.rawEncodedPixels);
+      pCtx.putImageData(imgData, 0, 0);
+
+      document.getElementById('skin-status-info').innerText = `${state.modelType.toUpperCase()} Model`;
+    }
+
+    function autoDetectAndSetModel() {
+      const steveRes = extractTextForModel('steve');
+      const alexRes = extractTextForModel('alex');
+
+      let detected = 'steve';
+
+      if (steveRes.length > 0 && alexRes.length === 0) {
+        detected = 'steve';
+      } else if (alexRes.length > 0 && steveRes.length === 0) {
+        detected = 'alex';
+      } else if (steveRes.length > 0 && alexRes.length > 0) {
+        detected = steveRes.length >= alexRes.length ? 'steve' : 'alex';
+      } else {
+        // Fresh skin geometry check: evaluate arm boundary alpha at (54, 20) & (55, 20)
+        const idx1 = (20 * 64 + 54) * 4 + 3;
+        const idx2 = (20 * 64 + 55) * 4 + 3;
+        const a1 = state.rawLoadedPixels[idx1];
+        const a2 = state.rawLoadedPixels[idx2];
+        detected = (a1 > 0 || a2 > 0) ? 'steve' : 'alex';
+      }
+
+      setModelType(detected, false);
+    }
+
+    async function handleFileUpload(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+
+      if (!file.type.includes('png')) {
+        showToast('Please upload a valid PNG image file.', true);
+        return;
+      }
+
+      try {
+        const buffer = await file.arrayBuffer();
+        const rawPixels = await decodePNGToRawRGBA(buffer);
+
+        state.rawLoadedPixels.set(rawPixels);
+        state.rawEncodedPixels.set(rawPixels);
+        state.sourceTitle = file.name;
+
+        autoDetectAndSetModel();
+        decodeMessageFromSkin();
+        showToast(`Loaded "${file.name}" (${state.modelType.toUpperCase()} model)`);
+      } catch (err) {
+        showToast('Failed to parse PNG binary data.', true);
+      }
+    }
+
+    async function fetchSkinByUsername() {
+      const username = document.getElementById('username-input').value.trim();
+      if (!username) {
+        showToast('Please enter a Minecraft username.', true);
+        return;
+      }
+
+      showToast(`Fetching skin for "${username}"...`);
+
+      try {
+        const skinUrl = `https://mc-heads.net/skin/${username}`;
+        const resp = await fetch(skinUrl);
+        if (!resp.ok) throw new Error('Skin API network response failed');
+
+        const buffer = await resp.arrayBuffer();
+        const rawPixels = await decodePNGToRawRGBA(buffer);
+
+        state.rawLoadedPixels.set(rawPixels);
+        state.rawEncodedPixels.set(rawPixels);
+        state.sourceTitle = `Player: ${username}`;
+
+        autoDetectAndSetModel();
+        decodeMessageFromSkin();
+        showToast(`Skin for "${username}" loaded! (${state.modelType.toUpperCase()} model)`);
+      } catch (e) {
+        showToast(`Could not fetch skin for player "${username}".`, true);
+      }
+    }
+
+    async function downloadEncodedSkinPNG() {
+      encodeMessageToSkin();
+
+      try {
+        const blob = await encodeRawRGBAToPNGBlob(state.rawEncodedPixels);
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.download = `mc_encoded_skin_${Date.now()}.png`;
+        link.href = url;
+        document.body.appendChild(link);
+        link.click();
+
+        setTimeout(() => {
+          document.body.removeChild(link);
+          URL.revokeObjectURL(url);
+        }, 150);
+
+        showToast('Downloading encoded skin PNG...');
+      } catch (err) {
+        showToast('Error generating PNG download file.', true);
+      }
+    }
+  </script>
+</body>
+</html>
